@@ -18,15 +18,18 @@
 package be.ugent.intec.halvade.uploader;
 
 import be.ugent.intec.halvade.uploader.input.FileReaderFactory;
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -67,7 +70,13 @@ public class HalvadeUploader  extends Configured implements Tool {
     @Override
     public int run(String[] strings) throws Exception {
         try {
-            parseArguments(strings);  
+            parseArguments(strings); 
+            // debug
+            System.out.println("input string: ");
+            for (String s : strings) {
+            	
+            	System.out.println(s);
+            }
             processFiles();
         } catch (ParseException e) {
             // automatically generate the help statement
@@ -97,7 +106,7 @@ public class HalvadeUploader  extends Configured implements Tool {
             Configuration conf = getConf();
             fs = FileSystem.get(new URI(outputDir), conf);
             Path outpath = new Path(outputDir);
-            if (fs.exists(outpath) && !fs.getFileStatus(outpath).isDir()) {
+            if (fs.exists(outpath) && !fs.getFileStatus(outpath).isDirectory()) {
                 Logger.DEBUG("please provide an output directory");
                 return 1;
             }
@@ -114,7 +123,10 @@ public class HalvadeUploader  extends Configured implements Tool {
                 if(files.length == 2) {
                     factory.addReader(files[0], files[1], false);
                 } else if(files.length == 1) {
-                    factory.addReader(files[0], null, isInterleaved);
+                    // debug
+                	System.out.println(files[0]);
+                	System.out.println(files[0].length());
+                	factory.addReader(files[0], null, isInterleaved);
                 }
             }
         } else if (file1 != null && file2 != null) {
