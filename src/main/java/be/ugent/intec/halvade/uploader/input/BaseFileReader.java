@@ -48,6 +48,8 @@ public abstract class BaseFileReader {
         } else if(file.equals("-")) {
             return new BufferedReader(new InputStreamReader(System.in));
         }else 
+        	// debug
+        	System.out.println(file);
             return new BufferedReader(new FileReader(file));            
     }  
 
