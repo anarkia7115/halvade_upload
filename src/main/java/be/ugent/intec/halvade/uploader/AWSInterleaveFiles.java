@@ -28,6 +28,7 @@ import org.apache.hadoop.io.compress.CompressionCodec;
 /**
  *
  * @author ddecap
+ * 
  */
 public class AWSInterleaveFiles extends BaseInterleaveFiles {
     protected AWSUploader upl; // S3

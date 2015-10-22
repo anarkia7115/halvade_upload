@@ -97,7 +97,7 @@ public class HalvadeUploader  extends Configured implements Tool {
             Configuration conf = getConf();
             fs = FileSystem.get(new URI(outputDir), conf);
             Path outpath = new Path(outputDir);
-            if (fs.exists(outpath) && !fs.getFileStatus(outpath).isDirectory()) {
+            if (fs.exists(outpath) && !fs.getFileStatus(outpath).isDir()) {
                 Logger.DEBUG("please provide an output directory");
                 return 1;
             }
