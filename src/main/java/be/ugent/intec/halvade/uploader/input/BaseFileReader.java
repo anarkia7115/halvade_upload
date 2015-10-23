@@ -49,7 +49,7 @@ public abstract class BaseFileReader {
             return new BufferedReader(new InputStreamReader(System.in));
         }else 
         	// debug
-        	System.out.println(file);
+        	System.out.println("file: " + file);
             return new BufferedReader(new FileReader(file));            
     }  
 
