@@ -89,8 +89,9 @@ public class AWSUploader {
     
     public void Upload(String key, InputStream input, long size) throws InterruptedException {
         ObjectMetadata meta = new ObjectMetadata();
-        meta.setServerSideEncryption(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);   
+        //meta.setServerSideEncryption(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);   
         meta.setContentLength(size);
+        System.out.println("Bucket: " + existingBucketName + "\tKey: " + key + "\tInput: " + input);
         Upload upload = tm.upload(existingBucketName, key, input, meta);
         
         try {
