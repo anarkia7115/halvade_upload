@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2014 ddecap
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package be.ugent.intec.halvade.uploader;
 
 import com.amazonaws.AmazonClientException;
@@ -33,16 +16,22 @@ import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.services.s3.transfer.Upload;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 /**
  *
  * @author ddecap
  */
-public class AWSUploader {
+public class AWSUploaderTest
+	extends TestCase{
     
     private String existingBucketName;
     private TransferManager tm;
@@ -56,7 +45,8 @@ public class AWSUploader {
         this.tm = new TransferManager(s3);   
     }
     
-    public AWSUploader(String existingBucketName) throws IOException {
+    public AWSUploaderTest(String existingBucketName) throws IOException {
+    	super( existingBucketName );
         this.existingBucketName = existingBucketName;
         AWSCredentials c;
         
@@ -93,14 +83,32 @@ public class AWSUploader {
         meta.setContentLength(size);
         System.out.println("Bucket: " + existingBucketName + "\tKey: " + key + "\tInput: " + input);
         Upload upload = tm.upload(existingBucketName, key, input, meta);
-        
+        //Upload upload = tm.upload(existingBucketName, key, input, input);      
         try {
         	// Or you can block and wait for the upload to finish
         	upload.waitForCompletion();
-                Logger.DEBUG("Upload complete.");
+                //Logger.DEBUG("Upload complete.");
         } catch (AmazonClientException amazonClientException) {
-        	Logger.DEBUG("Unable to upload file, upload was aborted.");
-        	Logger.EXCEPTION(amazonClientException);
+        	//Logger.DEBUG("Unable to upload file, upload was aborted.");
+        	//Logger.EXCEPTION(amazonClientException);
         }
+    }
+
+    public static Test suite()
+    {
+        return new TestSuite( AWSUploaderTest.class );
+    }
+    
+    public void testApp() throws IOException, InterruptedException {
+    	AWSUploader a = new AWSUploader("gcbibucket");
+    	
+    	String str = "This is a String ~ GoGoGo";
+
+    	// convert String into InputStream
+    	InputStream input = new ByteArrayInputStream(str.getBytes());
+    	long size = str.getBytes().length;
+    	a.Upload("halvade/testUpload", input, size);
+    	
+    	assertTrue(true);
     }
 }

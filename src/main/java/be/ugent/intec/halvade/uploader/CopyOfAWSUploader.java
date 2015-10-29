@@ -22,18 +22,10 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.services.s3.transfer.Upload;
-
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,24 +34,15 @@ import java.io.InputStream;
  *
  * @author ddecap
  */
-public class AWSUploader {
+public class CopyOfAWSUploader {
     
     private String existingBucketName;
     private TransferManager tm;
 
-    private void setS3Region(AWSCredentials credentials) {
-
-        AmazonS3 s3 = new AmazonS3Client(credentials);
-        Region cnNorth1 = Region.getRegion(Regions.CN_NORTH_1);
-        s3.setRegion(cnNorth1);
-        
-        this.tm = new TransferManager(s3);   
-    }
     
-    public AWSUploader(String existingBucketName) throws IOException {
+    public CopyOfAWSUploader(String existingBucketName) throws IOException {
         this.existingBucketName = existingBucketName;
         AWSCredentials c;
-        
         try{
             DefaultAWSCredentialsProviderChain prov = new DefaultAWSCredentialsProviderChain();
             c= prov.getCredentials();
@@ -79,8 +62,7 @@ public class AWSUploader {
             }
             c = new BasicAWSCredentials(access, secret);
         }
-        //this.tm = new TransferManager(c);
-        setS3Region(c);
+        this.tm = new TransferManager(c);
     }
     
     public void shutDownNow() {
@@ -89,9 +71,8 @@ public class AWSUploader {
     
     public void Upload(String key, InputStream input, long size) throws InterruptedException {
         ObjectMetadata meta = new ObjectMetadata();
-        //meta.setServerSideEncryption(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);   
+        meta.setServerSideEncryption(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);   
         meta.setContentLength(size);
-        System.out.println("Bucket: " + existingBucketName + "\tKey: " + key + "\tInput: " + input);
         Upload upload = tm.upload(existingBucketName, key, input, meta);
         
         try {

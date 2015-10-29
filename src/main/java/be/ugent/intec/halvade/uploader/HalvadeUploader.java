@@ -100,7 +100,8 @@ public class HalvadeUploader  extends Configured implements Tool {
         if(outputDir.startsWith("s3")) {
             useAWS = true;
             String existingBucketName = outputDir.replace("s3://","").split("/")[0];
-            outputDir = outputDir.replace("s3://" + existingBucketName, "");
+            // solve '/' folder problem
+            outputDir = outputDir.replace("s3://" + existingBucketName + "/", "");
             upl = new AWSUploader(existingBucketName);
         } else {
             Configuration conf = getConf();
