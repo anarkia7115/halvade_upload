@@ -107,7 +107,7 @@ public class AWSUploaderTest
     	// convert String into InputStream
     	InputStream input = new ByteArrayInputStream(str.getBytes());
     	long size = str.getBytes().length;
-    	a.Upload("halvade/testUpload", input, size);
+    	//a.Upload("halvade/testUpload", input, size);
     	
     	assertTrue(true);
     }
