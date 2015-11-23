@@ -19,7 +19,9 @@ package be.ugent.intec.halvade.uploader;
 
 import be.ugent.intec.halvade.uploader.input.ReadBlock;
 import be.ugent.intec.halvade.uploader.input.FileReaderFactory;
+
 import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -36,8 +38,9 @@ abstract class BaseInterleaveFiles extends Thread {
     protected String fsName;
     protected int thread;
     protected boolean useHadoopCompression = false;
+    protected String localHalvadeOutput;
     
-    public BaseInterleaveFiles(String base, long maxFileSize, int thread) {
+    public BaseInterleaveFiles(String base, long maxFileSize, int thread, String fp) {
         this.fileBase = base;
         this.thread = thread;
         written = 0;
@@ -45,6 +48,7 @@ abstract class BaseInterleaveFiles extends Thread {
         count = 0;
         factory = FileReaderFactory.getInstance(thread);
         BaseInterleaveFiles.maxFileSize = maxFileSize;
+        localHalvadeOutput = fp;
     }
 
     protected double round(double value) {
@@ -62,6 +66,7 @@ abstract class BaseInterleaveFiles extends Thread {
     @Override
     public void run() {
         try {
+        	System.out.println("fileBase: " + fileBase);
             Logger.DEBUG("Starting thread " + thread + " to write reads to " + fsName);
             
             int part = 0, tSize;  
@@ -69,11 +74,17 @@ abstract class BaseInterleaveFiles extends Thread {
             OutputStream dataStream = getNewDataStream(part, fileBase);
             BufferedOutputStream gzipStream = getNewCompressedStream(dataStream);
             
+        	OutputStream outputStream = new FileOutputStream (
+        			localHalvadeOutput + "/" + "halvade" + "-" + thread + "-" + part); 
             
             fileWritten = 0;
             ReadBlock block = factory.retrieveBlock();
             while(block != null) {
                 fileWritten += block.write(gzipStream);
+                
+                // write to local file
+                block.write(outputStream);
+                
                 count += block.getSize();
                 tSize = getSize(dataStream);
                 if(tSize > maxFileSize) {
@@ -85,7 +96,12 @@ abstract class BaseInterleaveFiles extends Thread {
                     fileWritten = 0;
                     part++;
                     dataStream = resetDataStream(part, fileBase, dataStream);
-                    gzipStream = getNewCompressedStream(dataStream);                 
+                    gzipStream = getNewCompressedStream(dataStream);
+                    
+                    // open another local file
+                    outputStream.close();
+                    outputStream = new FileOutputStream (
+                    		localHalvadeOutput + "/" + "halvade" + "-" + thread + "-" + part); 
                 }
                 block = factory.retrieveBlock();
             }

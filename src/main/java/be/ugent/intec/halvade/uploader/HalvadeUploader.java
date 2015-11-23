@@ -24,6 +24,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -54,6 +55,7 @@ public class HalvadeUploader  extends Configured implements Tool {
     private String file2;
     private String outputDir;
     private int bestFileSize = 60000000; // <64MB
+    private String localDecompressed;
     
     
     private AWSCredentials credentials;
@@ -71,11 +73,10 @@ public class HalvadeUploader  extends Configured implements Tool {
     public int run(String[] strings) throws Exception {
         try {
             parseArguments(strings); 
-            // debug
-            System.out.println("input string: ");
+
             for (String s : strings) {
             	
-            	System.out.println(s);
+            	//System.out.println(s);
             }
             processFiles();
         } catch (ParseException e) {
@@ -124,9 +125,6 @@ public class HalvadeUploader  extends Configured implements Tool {
                 if(files.length == 2) {
                     factory.addReader(files[0], files[1], false);
                 } else if(files.length == 1) {
-                    // debug
-                	System.out.println(files[0]);
-                	System.out.println(files[0].length());
                 	factory.addReader(files[0], null, isInterleaved);
                 }
             }
@@ -148,6 +146,11 @@ public class HalvadeUploader  extends Configured implements Tool {
         
         int bestThreads = mthreads;
         long maxFileSize = getBestFileSize(); 
+        
+        // make local dir
+        File dir = new File(localDecompressed);
+		dir.mkdirs();
+		
         if(useAWS) {
             AWSInterleaveFiles[] fileThreads = new AWSInterleaveFiles[bestThreads];
             // start interleaveFile threads
@@ -155,7 +158,7 @@ public class HalvadeUploader  extends Configured implements Tool {
                 fileThreads[t] = new AWSInterleaveFiles(
                         outputDir + "halvade_" + t + "_", 
                         maxFileSize, 
-                        upl, t, codec);
+                        upl, t, codec, localDecompressed);
                 fileThreads[t].start();
             }
             for(int t = 0; t < bestThreads; t++)
@@ -221,6 +224,14 @@ public class HalvadeUploader  extends Configured implements Tool {
                                 .withDescription(  "Compress the output files with lz4 (faster) instead of gzip. The lz4 library needs to be installed in Hadoop." )
                                 .create( "lz4" );
         
+        // local halvade output
+        Option optLocalDecompressed = OptionBuilder.withArgName( "path" )
+                				.hasArg()
+                				.isRequired(true)
+                				.withDescription(  "Local folder path for halvade decompressed files."  )
+                        		.create( "l" );
+        
+        
         options.addOption(optOut);
         options.addOption(optFile1);
         options.addOption(optFile2);
@@ -229,6 +240,7 @@ public class HalvadeUploader  extends Configured implements Tool {
         options.addOption(optInter);
         options.addOption(optSnappy);
         options.addOption(optLz4);
+        options.addOption(optLocalDecompressed);
     }
     
     public void parseArguments(String[] args) throws ParseException {
@@ -236,6 +248,7 @@ public class HalvadeUploader  extends Configured implements Tool {
         CommandLineParser parser = new GnuParser();
         CommandLine line = parser.parse(options, args);
         manifest = line.getOptionValue("1");
+        localDecompressed = line.getOptionValue("l");
         if(!manifest.endsWith(".manifest")) {
             file1 = manifest;
             manifest = null;

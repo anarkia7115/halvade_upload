@@ -20,9 +20,11 @@ package be.ugent.intec.halvade.uploader;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
+
 import org.apache.hadoop.io.compress.CompressionCodec;
 
 /**
@@ -34,8 +36,8 @@ public class AWSInterleaveFiles extends BaseInterleaveFiles {
     protected AWSUploader upl; // S3
     protected CompressionCodec codec;
     
-    public AWSInterleaveFiles(String base, long maxFileSize, AWSUploader upl, int thread, CompressionCodec codec) {
-        super(base, maxFileSize, thread);
+    public AWSInterleaveFiles(String base, long maxFileSize, AWSUploader upl, int thread, CompressionCodec codec, String fp) {
+        super(base, maxFileSize, thread, fp);
         this.upl = upl;
         this.fsName = "S3";
         this.codec = codec;
@@ -65,7 +67,8 @@ public class AWSInterleaveFiles extends BaseInterleaveFiles {
     
     @Override
     protected void writeData(int part, OutputStream dataStream, BufferedOutputStream gzipStream) throws IOException {
-        ByteArrayOutputStream byteStream = (ByteArrayOutputStream) dataStream;
+        
+    	ByteArrayOutputStream byteStream = (ByteArrayOutputStream) dataStream;
         try {
             Logger.DEBUG("uploading part " + part + ": " + byteStream.size());
             upl.Upload(fileBase + part + (useHadoopCompression ? ".fq" + codec.getDefaultExtension() : ".fq.gz"), new ByteArrayInputStream(byteStream.toByteArray()), byteStream.size());
