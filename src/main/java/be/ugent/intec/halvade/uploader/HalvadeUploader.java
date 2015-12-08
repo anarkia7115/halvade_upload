@@ -173,7 +173,7 @@ public class HalvadeUploader  extends Configured implements Tool {
                 fileThreads[t] = new HDFSInterleaveFiles(
                         outputDir + "halvade_" + t + "_", 
                         maxFileSize, 
-                        fs, t, codec);
+                        fs, t, codec, localDecompressed);
                 fileThreads[t].start();
             }
             for(int t = 0; t < bestThreads; t++)
